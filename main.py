@@ -4,10 +4,13 @@
 #       Differentiate between spec types and give different health values accordingly
 #       Finish perform_ability() and manage status effects
 #       Make enemies characters and give them actions
+#           Update Status Effects to include enemies
+#           Update perform_ability to include duration effects
+#
 #       Make *Arena* for the battles to happen in (Include Health, and Current turn.)
 #       update to update_character_status()         (make sure to finish spell casts)
+#       Give health a maximum value
 #
-#       Testing change for github
 ###########################################################################################
 
 
@@ -19,11 +22,11 @@ class Character:
     current_abilities = []
     health = 30
 
-    status_effects = {'Crowd-Control': {'CC-Status':  None, 'CC-Length': None, 'CC-Type': None},
-                      'Cast-Bar': {'Cast-Status': None, 'Cast-Length': None, 'Cast-Type': None},
-                      'Damage-Over-Time': {'Damage-Status':  None, 'Damage-Length': None, 'Damage-Type': None,
+    status_effects = {'Crowd-Control': {'CC-Status':  None, 'CC-Length': 0, 'CC-Type': None},
+                      'Cast-Bar': {'Cast-Status': None, 'Cast-Length': 0, 'Cast-Info': {}, 'Cast-Target': (""*5)},
+                      'Damage-Over-Time': {'Damage-Status':  None, 'Damage-Length': 0, 'Damage-Type': None,
                                            'Damage-Value': None},
-                      'Healing-Over-Time': {'Healing-Status':  None, 'Healing-Length': None, 'Healing-Type': None,
+                      'Healing-Over-Time': {'Healing-Status':  None, 'Healing-Length': 0, 'Healing-Type': None,
                                             'Healing-Value': None},
                       'Ability-Cooldowns': {'Ability-1': None, 'Ability-2': None, 'Ability-3': None}}
 
@@ -103,8 +106,9 @@ class Character:
         print_abilities(self.current_abilities)
 
     def print_properties(self):
-        print("\nYou are a " + self.specialization.capitalize() + " " + self.character_type.capitalize() + ". Your name is "
-              + self.name + "\nYour current abilities are " + ", ".join(c.capitalize() for c in self.current_abilities) +
+        print("\nYou are a " + self.specialization.capitalize() + " " + self.character_type.capitalize() +
+              ". Your name is " + self.name + "\nYour current abilities are " +
+              ", ".join(c.capitalize() for c in self.current_abilities) +
               ".\n\nHere is a more detailed explanation of each.\n")
         self.show_detailed_abilities()
 
@@ -115,7 +119,77 @@ class Character:
         print("\n")
 
     def update_character_status(self):
-        print("\nUpdating status of the player... in theory.")
+        if self.status_effects['Damage-Over-Time']['Damage-Status']:
+            self.health -= self.status_effects['Damage-Over-Time']['Damage-Value']
+            self.status_effects['Damage-Over-Time']['Damage-Length'] -= 1
+            if self.status_effects['Damage-Over-Time']['Damage-Length'] <= 0:
+                self.status_effects['Damage-Over-Time']['Damage-Status'] = None
+                self.status_effects['Damage-Over-Time']['Damage-Type'] = None
+                self.status_effects['Damage-Over-Time']['Damage-Length'] = 0
+                self.status_effects['Damage-Over-Time']['Damage-Value'] = None
+        if self.status_effects['Healing-Over-Time']['Healing-Status']:
+            self.health += self.status_effects['Healing-Over-Time']['Healing-Value']
+            self.status_effects['Healing-Over-Time']['Healing-Length'] -= 1
+            if self.status_effects['Healing-Over-Time']['Healing-Length'] <= 0:
+                self.status_effects['Healing-Over-Time']['Healing-Status'] = None
+                self.status_effects['Healing-Over-Time']['Healing-Type'] = None
+                self.status_effects['Healing-Over-Time']['Healing-Length'] = 0
+                self.status_effects['Healing-Over-Time']['Healing-Value'] = None
+        if self.status_effects['Crowd-Control']['CC-Status']:
+            # interrupt spell cast if there was any upon being CC'd
+            self.status_effects['Cast-Bar']['Cast-Status'] = None
+            self.status_effects['Cast-Bar']['Cast-Length'] = 0
+            self.status_effects['Cast-Bar']['Cast-Info'].clear()
+            self.status_effects['Cast-Bar']['Cast-Target'] = (''*5)
+            self.status_effects['Crowd-Control']['CC-Length'] -= 1
+            if self.status_effects['Crowd-Control']['CC-Length'] <= 0:
+                self.status_effects['Crowd-Control']['CC-Status'] = None
+                self.status_effects['Crowd-Control']['CC-Length'] = 0
+                self.status_effects['Crowd-Control']['CC-Type'] = None
+        elif self.status_effects['Cast-Bar']['Cast-Status']:
+            if self.status_effects['Cast-Bar']['Cast-Length'] == 1:
+                character_self, target, allies, enemies, friend_or_foe = self.status_effects['Cast-Bar']['Cast-Target']
+                if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Damage':
+                    if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-ST':
+                        enemies[target] -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                    elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-AOE':
+                        for enemy in enemies:
+                            enemy -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+
+                if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Heal':
+                    if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Friendly-ST':
+                        allies[target].health += self.status_effects['Cast-Bar']['Cast-Info']['Healing']
+                    elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Friendly-AOE':
+                        for ally in allies:
+                            ally.health += self.status_effects['Cast-Bar']['Cast-Info']['Healing']
+                    elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Self':
+                        allies[character_self].health += self.status_effects['Cast-Bar']['Cast-Info']['Healing']
+
+                if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Damage/Heal':
+                    if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Hybrid-ST':
+                        if friend_or_foe:
+                            enemies[target] -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                        else:
+                            allies[target].health += self.status_effects['Cast-Bar']['Cast-Info']['Healing']
+                    elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Hybrid-AOE':
+                        for ally in allies:
+                            ally.health += self.status_effects['Cast-Bar']['Cast-Info']['Healing']
+                        for enemy in enemies:
+                            enemy -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+
+                # need to fix/update CC when enemies are actually characters and not ints
+                if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Damage/CC':
+                    if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-ST':
+                        enemies[target] -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                    elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-AOE':
+                        for enemy in enemies:
+                            enemy -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                self.status_effects['Cast-Bar']['Cast-Status'] = None
+                self.status_effects['Cast-Bar']['Cast-Length'] = 0
+                self.status_effects['Cast-Bar']['Cast-Info'].clear()
+                self.status_effects['Cast-Bar']['Cast-Target'] = (''*5)
+            else:
+                self.status_effects['Cast-Bar']['Cast-Length'] -= 1
 
 
 def print_abilities(*ability_tuple):
@@ -193,7 +267,7 @@ def print_ability_description(ability_dict, name):
     print(ability_string)
 
 
-def basic_combat(player=Character):
+def basic_combat(player):
     enemy_list = [30, 30]
     ally_list = [player]
     print("You have started Combat! Prepare yourself for battle.")
@@ -276,8 +350,12 @@ def basic_combat(player=Character):
 # self and target and numbers that represent their positions in allies[] and enemies[]
 def perform_ability(ability_dict, character_self, target, allies, enemies, friend_or_foe):
     if ability_dict['Cast Time']:
-        print("Remember to cast here")
-    if ability_dict['Primary Effect'] == 'Damage':
+        allies[character_self].status_effects['Cast-Bar']['Cast-Status'] = True
+        allies[character_self].status_effects['Cast-Bar']['Cast-Length'] = ability_dict['Cast Time']
+        allies[character_self].status_effects['Cast-Bar']['Cast-Info'] = ability_dict.copy()
+        allies[character_self].status_effects['Cast-Bar']['Cast-Target'] = (character_self, target, allies,
+                                                                            enemies, friend_or_foe)
+    elif ability_dict['Primary Effect'] == 'Damage':
         if ability_dict['Target'] == 'Enemy-ST':
             enemies[target] -= ability_dict['Damage']
         elif ability_dict['Target'] == 'Enemy-AOE':
@@ -317,11 +395,6 @@ def perform_ability(ability_dict, character_self, target, allies, enemies, frien
             print("Remember to do CC")
         elif ability_dict['Target'] == 'Enemy-AOE':
             print("Remember to do AOE CC")
-
-    if ability_dict['Duration']:
-        if ability_dict['Duration'] >= 1:
-            print("Need status effect and duration")
-
 
 
 # t_a_d format "abilityname": {'Primary Effect': 'Damage/Heal/Hybrid/CC', 'Target': 'Enemy/Friendly/Hybrid-AOE/ST',
@@ -499,7 +572,7 @@ total_ability_dictionary = {
                                      'Duration': None, 'Cooldown': None, 'Cast Time': 1},
                       "riptide": {'Primary Effect': 'Heal', 'Target': 'Friendly-ST', 'Damage': None, 'Healing': 3,
                                   'Duration': 3, 'Cooldown': 2, 'Cast Time': None},
-                      "healing wave": {'Primary Effect': 'Heal', 'Target': 'Friendly-ST', 'Damage': None,'Healing': 6,
+                      "healing wave": {'Primary Effect': 'Heal', 'Target': 'Friendly-ST', 'Damage': None, 'Healing': 6,
                                        'Duration': None, 'Cooldown': None, 'Cast Time': 1},
                       "stormstrike": {'Primary Effect': 'Damage', 'Target': 'Enemy-ST', 'Damage': 5, 'Healing': None,
                                       'Duration': None, 'Cooldown': 2, 'Cast Time': None},
@@ -533,10 +606,10 @@ total_ability_dictionary = {
                                      'Duration': 5, 'Cooldown': None, 'Cast Time': None},
                       "fear": {'Primary Effect': 'CC', 'Target': 'Enemy-ST', 'Damage': None, 'Healing': None,
                                'Duration': 3, 'Cooldown': 1, 'Cast Time': 1},
-                      "hand of guldan": {'Primary Effect': 'Damage', 'Target': 'Enemy-AOE', 'Damage': 2, 'Healing': None,
-                                         'Duration': None, 'Cooldown': None, 'Cast Time': None},
+                      "hand of guldan": {'Primary Effect': 'Damage', 'Target': 'Enemy-AOE', 'Damage': 2,
+                                         'Healing': None, 'Duration': None, 'Cooldown': None, 'Cast Time': None},
                       "demonic skin": {'Primary Effect': 'Heal', 'Target': 'Self', 'Damage': None, 'Healing': 2,
-                                       'Duration': 6, 'Cooldown': 6,'Cast Time': None},
+                                       'Duration': 6, 'Cooldown': 6, 'Cast Time': None},
                       "shadowfury": {'Primary Effect': 'Damage/CC', 'Target': 'Enemy-AOE', 'Damage': 3, 'Healing': None,
                                      'Duration': 1, 'Cooldown': 3, 'Cast Time': 1},
                       "chaos bolt": {'Primary Effect': 'Damage', 'Target': 'Enemy-ST', 'Damage': 13, 'Healing': None,
