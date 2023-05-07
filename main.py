@@ -1,6 +1,7 @@
 ############################################################################################
 #                                TO DO LIST
 #
+#       Add another constructor for character that is given values directly (for NPCs)
 #       Differentiate between spec types and give different health values accordingly
 #       Finish perform_ability() and manage status effects
 #       Make enemies characters and give them actions
@@ -10,7 +11,8 @@
 #       Make *Arena* for the battles to happen in (Include Health, and Current turn.)
 #       update to update_character_status()         (make sure to finish spell casts)
 #       Give health a maximum value
-#
+#       Potential long term addition of status effects such as Damage Reduction and make it effect attacks etc.
+#       separate classes from main and generally organize codebase
 ###########################################################################################
 
 
@@ -67,35 +69,40 @@ class Character:
                                    "protection": {"shield slam", "revenge", "ignore pain"}},
                        "warlock": {"affliction": {"curse of agony", "shadow bolt", "corruption"},
                                    "demonology": {"hand of guldan", "demonic skin", "shadowfury"},
-                                   "destruction": {"chaos bolt", "incinerate", "immolate"}}}
+                                   "destruction": {"chaos bolt", "incinerate", "immolate"}},
+                       "basic-enemy": {"tank": {"basic attack"},
+                                       "healer": {"basic heal"},
+                                       "damage": {"basic strike"}}}
 
-    def __init__(self):
-        self.name = input("Please enter your character's name: ")
-        self.choose_class()
-        self.set_specialization()
-        self.print_properties()
-        self.print_status_effects()
+    def __init__(self, name):
+        self.name = name
 
-    def choose_class(self):
-        choice = None
-        while choice not in self.char_dictionary:
-            choice = input("Please write the name of your preferred class,\nChoices: " +
-                           ", ".join(
-                               c.capitalize() for c in self.char_dictionary.keys()) + "\nEnter Choice -> ").lower()
-            if choice not in self.char_dictionary.keys():
-                print("You did not make an appropriate selection or it was misspelled.\n")
+    def choose_class(self, NPC=''):
+        if NPC:
+            choice = NPC
+        else:
+            choice = None
+            while choice not in self.char_dictionary:
+                choice = input("Please write the name of your preferred class,\nChoices: " +
+                               ", ".join(
+                                   c.capitalize() for c in self.char_dictionary.keys()) + "\nEnter Choice -> ").lower()
+                if choice not in self.char_dictionary.keys():
+                    print("You did not make an appropriate selection or it was misspelled.\n")
         self.character_type = choice
 
-    def set_specialization(self):
-        choice = None
-        while choice not in self.char_dictionary[self.character_type]:
-            choice = input(
-                "Please write the name of your preferred specialization for " + self.character_type.capitalize() +
-                "\nYour choices are " + ", ".join(c.capitalize() for c in self.char_dictionary[self.character_type]) +
-                "\nEnter Choice ->").lower()
-            if choice not in self.char_dictionary[self.character_type]:
-                print("You did not make an appropriate selection or it was misspelled.\n")
-        self.specialization = choice
+    def set_specialization(self, NPC=''):
+        if NPC:
+            self.specialization = NPC
+        else:
+            choice = None
+            while choice not in self.char_dictionary[self.character_type]:
+                choice = input(
+                    "Please write the name of your preferred specialization for " + self.character_type.capitalize() +
+                    "\nYour choices are " + ", ".join(c.capitalize() for c in self.char_dictionary[self.character_type]) +
+                    "\nEnter Choice ->").lower()
+                if choice not in self.char_dictionary[self.character_type]:
+                    print("You did not make an appropriate selection or it was misspelled.\n")
+            self.specialization = choice
         self.set_abilities()
 
     def set_abilities(self):
@@ -192,6 +199,25 @@ class Character:
                 self.status_effects['Cast-Bar']['Cast-Length'] -= 1
 
 
+def player_character_creation():
+    name = input("Please enter your character's name: ")
+    brand_new_character = Character(name)
+    brand_new_character.choose_class()
+    brand_new_character.set_specialization()
+    brand_new_character.print_properties()
+    brand_new_character.print_status_effects()
+    return brand_new_character
+
+
+def basic_enemy_creation():
+    brand_new_character = Character('Basic Enemy')
+    brand_new_character.choose_class()
+    brand_new_character.set_specialization()
+    brand_new_character.print_properties()
+    brand_new_character.print_status_effects()
+    return brand_new_character
+
+
 def print_abilities(*ability_tuple):
     for ability in ability_tuple[0]:
         print_ability_description(total_ability_dictionary[ability], "".join(ability).capitalize())
@@ -272,8 +298,17 @@ def basic_combat(player):
     ally_list = [player]
     print("You have started Combat! Prepare yourself for battle.")
     print("There are " + (enemy_list.__len__().__str__() + " enemies."))
+
     combat = 1
+
     while combat:
+        if enemy_list[0] <= 0:
+            print("You have defeated your enemies and won the battle!")
+            combat = 0
+        elif player.health <= 0:
+            print("You have been defeated and lost the battle.")
+            combat = 0
+
         # start player turn
         player.update_character_status()
         if player.status_effects['Crowd-Control']['CC-Status']:
@@ -637,5 +672,5 @@ def t_a_d_target_check():
     print(ability_target_list)
 
 
-player_one = Character()
+player_one = player_character_creation()
 basic_combat(player_one)

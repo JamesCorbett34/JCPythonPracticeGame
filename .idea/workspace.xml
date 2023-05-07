@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="">
+    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Worked on perform_ability() and was able to implement the cast-bar. Abilities with a cast time now will wait their appropriate amount of time before going off and will 'CC' the character who is casting when the spell is multiple turns long.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -52,7 +52,14 @@
       <option name="project" value="LOCAL" />
       <updated>1683391308858</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Worked on perform_ability() and was able to implement the cast-bar. Abilities with a cast time now will wait their appropriate amount of time before going off and will 'CC' the character who is casting when the spell is multiple turns long.">
+      <created>1683406869782</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1683406869782</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -80,6 +87,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Finally uploaded to git!" />
-    <option name="LAST_COMMIT_MESSAGE" value="Finally uploaded to git!" />
+    <MESSAGE value="Worked on perform_ability() and was able to implement the cast-bar. Abilities with a cast time now will wait their appropriate amount of time before going off and will 'CC' the character who is casting when the spell is multiple turns long." />
+    <option name="LAST_COMMIT_MESSAGE" value="Worked on perform_ability() and was able to implement the cast-bar. Abilities with a cast time now will wait their appropriate amount of time before going off and will 'CC' the character who is casting when the spell is multiple turns long." />
   </component>
 </project>
