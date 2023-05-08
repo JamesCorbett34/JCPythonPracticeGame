@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Worked on perform_ability() and was able to implement the cast-bar. Abilities with a cast time now will wait their appropriate amount of time before going off and will 'CC' the character who is casting when the spell is multiple turns long.">
+    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Updated To-Do list with stuff I have been considering since last session. Added &quot;basic-enemy&quot; to character dictionary. Changed constructer and functionality of some character methods to allow for creation of 'basic-enemies'">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -59,7 +59,14 @@
       <option name="project" value="LOCAL" />
       <updated>1683406869782</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Updated To-Do list with stuff I have been considering since last session. Added &quot;basic-enemy&quot; to character dictionary. Changed constructer and functionality of some character methods to allow for creation of 'basic-enemies'">
+      <created>1683483060630</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1683483060630</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -88,6 +95,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Finally uploaded to git!" />
     <MESSAGE value="Worked on perform_ability() and was able to implement the cast-bar. Abilities with a cast time now will wait their appropriate amount of time before going off and will 'CC' the character who is casting when the spell is multiple turns long." />
-    <option name="LAST_COMMIT_MESSAGE" value="Worked on perform_ability() and was able to implement the cast-bar. Abilities with a cast time now will wait their appropriate amount of time before going off and will 'CC' the character who is casting when the spell is multiple turns long." />
+    <MESSAGE value="Updated To-Do list with stuff I have been considering since last session. Added &quot;basic-enemy&quot; to character dictionary. Changed constructer and functionality of some character methods to allow for creation of 'basic-enemies'" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated To-Do list with stuff I have been considering since last session. Added &quot;basic-enemy&quot; to character dictionary. Changed constructer and functionality of some character methods to allow for creation of 'basic-enemies'" />
   </component>
 </project>

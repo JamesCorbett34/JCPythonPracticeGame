@@ -1,15 +1,12 @@
 ############################################################################################
 #                                TO DO LIST
 #
-#       Add another constructor for character that is given values directly (for NPCs)
 #       Differentiate between spec types and give different health values accordingly
-#       Finish perform_ability() and manage status effects
-#       Make enemies characters and give them actions
-#           Update Status Effects to include enemies
-#           Update perform_ability to include duration effects
+#       need to update endgame to check for all enemy healths and friendly healths
+#       Update basic combat to include enemy actions
+#               make enemies attacks automated
 #
 #       Make *Arena* for the battles to happen in (Include Health, and Current turn.)
-#       update to update_character_status()         (make sure to finish spell casts)
 #       Give health a maximum value
 #       Potential long term addition of status effects such as Damage Reduction and make it effect attacks etc.
 #       separate classes from main and generally organize codebase
@@ -77,9 +74,9 @@ class Character:
     def __init__(self, name):
         self.name = name
 
-    def choose_class(self, NPC=''):
-        if NPC:
-            choice = NPC
+    def choose_class(self, npc=''):
+        if npc:
+            choice = npc
         else:
             choice = None
             while choice not in self.char_dictionary:
@@ -90,9 +87,9 @@ class Character:
                     print("You did not make an appropriate selection or it was misspelled.\n")
         self.character_type = choice
 
-    def set_specialization(self, NPC=''):
-        if NPC:
-            self.specialization = NPC
+    def set_specialization(self, npc=''):
+        if npc:
+            self.specialization = npc
         else:
             choice = None
             while choice not in self.char_dictionary[self.character_type]:
@@ -158,10 +155,10 @@ class Character:
                 character_self, target, allies, enemies, friend_or_foe = self.status_effects['Cast-Bar']['Cast-Target']
                 if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Damage':
                     if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-ST':
-                        enemies[target] -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                        enemies[target].health -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
                     elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-AOE':
                         for enemy in enemies:
-                            enemy -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                            enemy.health -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
 
                 if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Heal':
                     if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Friendly-ST':
@@ -175,22 +172,22 @@ class Character:
                 if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Damage/Heal':
                     if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Hybrid-ST':
                         if friend_or_foe:
-                            enemies[target] -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                            enemies[target].health -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
                         else:
                             allies[target].health += self.status_effects['Cast-Bar']['Cast-Info']['Healing']
                     elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Hybrid-AOE':
                         for ally in allies:
                             ally.health += self.status_effects['Cast-Bar']['Cast-Info']['Healing']
                         for enemy in enemies:
-                            enemy -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                            enemy.health -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
 
                 # need to fix/update CC when enemies are actually characters and not ints
                 if self.status_effects['Cast-Bar']['Cast-Info']['Primary Effect'] == 'Damage/CC':
                     if self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-ST':
-                        enemies[target] -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                        enemies[target].health -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
                     elif self.status_effects['Cast-Bar']['Cast-Info']['Target'] == 'Enemy-AOE':
                         for enemy in enemies:
-                            enemy -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
+                            enemy.health -= self.status_effects['Cast-Bar']['Cast-Info']['Damage']
                 self.status_effects['Cast-Bar']['Cast-Status'] = None
                 self.status_effects['Cast-Bar']['Cast-Length'] = 0
                 self.status_effects['Cast-Bar']['Cast-Info'].clear()
@@ -209,10 +206,10 @@ def player_character_creation():
     return brand_new_character
 
 
-def basic_enemy_creation():
+def basic_enemy_creation(enemy_type):
     brand_new_character = Character('Basic Enemy')
-    brand_new_character.choose_class()
-    brand_new_character.set_specialization()
+    brand_new_character.choose_class('basic-enemy')
+    brand_new_character.set_specialization(enemy_type)
     brand_new_character.print_properties()
     brand_new_character.print_status_effects()
     return brand_new_character
@@ -294,7 +291,7 @@ def print_ability_description(ability_dict, name):
 
 
 def basic_combat(player):
-    enemy_list = [30, 30]
+    enemy_list = [basic_enemy_creation('tank'), basic_enemy_creation('damage')]
     ally_list = [player]
     print("You have started Combat! Prepare yourself for battle.")
     print("There are " + (enemy_list.__len__().__str__() + " enemies."))
@@ -302,7 +299,7 @@ def basic_combat(player):
     combat = 1
 
     while combat:
-        if enemy_list[0] <= 0:
+        if enemy_list[0].health <= 0:
             print("You have defeated your enemies and won the battle!")
             combat = 0
         elif player.health <= 0:
@@ -337,7 +334,7 @@ def basic_combat(player):
             if total_ability_dictionary[player.current_abilities[choice-1]]['Target'] == 'Enemy-ST':
                 print("Choose a target for your attack.")
                 for index, enemy in enumerate(enemy_list):
-                    print("Enemy " + (index+1).__str__() + " has " + enemy.__str__() + " health left.")
+                    print("Enemy " + (index+1).__str__() + " has " + enemy.health.__str__() + " health left.")
                 while not chosen_target:
                     chosen_target = int(input("Enter enemy number -> "))
                     if chosen_target not in range(1, enemy_list.__len__()+1):
@@ -357,7 +354,7 @@ def basic_combat(player):
                 if f_o_f:
                     print("Choose a target for your attack.")
                     for index, enemy in enumerate(enemy_list):
-                        print("Enemy " + (index+1).__str__() + " has " + enemy.__str__() + " health left.")
+                        print("Enemy " + (index+1).__str__() + " has " + enemy.health.__str__() + " health left.")
                     while not chosen_target:
                         chosen_target = int(input("Enter enemy number -> "))
                         if chosen_target not in range(1, enemy_list.__len__()+1):
@@ -374,7 +371,8 @@ def basic_combat(player):
             perform_ability(total_ability_dictionary[player.current_abilities[choice-1]], 0, chosen_target-1,
                             ally_list, enemy_list, f_o_f)
         # end player turn
-        if enemy_list[0] <= 0:
+        # need to update endgame to check for all enemy healths and friendly healths
+        if enemy_list[0].health <= 0:
             print("You have defeated your enemies and won the battle!")
             combat = 0
         elif player.health <= 0:
@@ -392,10 +390,10 @@ def perform_ability(ability_dict, character_self, target, allies, enemies, frien
                                                                             enemies, friend_or_foe)
     elif ability_dict['Primary Effect'] == 'Damage':
         if ability_dict['Target'] == 'Enemy-ST':
-            enemies[target] -= ability_dict['Damage']
+            enemies[target].health -= ability_dict['Damage']
         elif ability_dict['Target'] == 'Enemy-AOE':
             for enemy in enemies:
-                enemy -= ability_dict['Damage']
+                enemy.health -= ability_dict['Damage']
 
     if ability_dict['Primary Effect'] == 'Heal':
         if ability_dict['Target'] == 'Friendly-ST':
@@ -409,27 +407,34 @@ def perform_ability(ability_dict, character_self, target, allies, enemies, frien
     if ability_dict['Primary Effect'] == 'Damage/Heal':
         if ability_dict['Target'] == 'Hybrid-ST':
             if friend_or_foe:
-                enemies[target] -= ability_dict['Damage']
+                enemies[target].health -= ability_dict['Damage']
             else:
                 allies[target].health += ability_dict['Healing']
         elif ability_dict['Target'] == 'Hybrid-AOE':
             for ally in allies:
                 ally.health += ability_dict['Healing']
             for enemy in enemies:
-                enemy -= ability_dict['Damage']
+                enemy.health -= ability_dict['Damage']
 
     if ability_dict['Primary Effect'] == 'Damage/CC':
         if ability_dict['Target'] == 'Enemy-ST':
-            enemies[target] -= ability_dict['Damage']
+            enemies[target].health -= ability_dict['Damage']
+            enemies[target].status_effects['Crowd-Control']['CC-Status'] = True
+            enemies[target].status_effects['Crowd-Control']['CC-Length'] = ability_dict['Duration']
         elif ability_dict['Target'] == 'Enemy-AOE':
             for enemy in enemies:
-                enemy -= ability_dict['Damage']
+                enemy.health -= ability_dict['Damage']
+                enemy.status_effects['Crowd-Control']['CC-Status'] = True
+                enemy.status_effects['Crowd-Control']['CC-Length'] = ability_dict['Duration']
 
     if ability_dict['Primary Effect'] == 'CC':
         if ability_dict['Target'] == 'Enemy-ST':
-            print("Remember to do CC")
+            enemies[target].status_effects['Crowd-Control']['CC-Status'] = True
+            enemies[target].status_effects['Crowd-Control']['CC-Length'] = ability_dict['Duration']
         elif ability_dict['Target'] == 'Enemy-AOE':
-            print("Remember to do AOE CC")
+            for enemy in enemies:
+                enemy.status_effects['Crowd-Control']['CC-Status'] = True
+                enemy.status_effects['Crowd-Control']['CC-Length'] = ability_dict['Duration']
 
 
 # t_a_d format "abilityname": {'Primary Effect': 'Damage/Heal/Hybrid/CC', 'Target': 'Enemy/Friendly/Hybrid-AOE/ST',
@@ -652,7 +657,14 @@ total_ability_dictionary = {
                       "incinerate": {'Primary Effect': 'Damage', 'Target': 'Enemy-ST', 'Damage': 4, 'Healing': None,
                                      'Duration': None, 'Cooldown': None, 'Cast Time': None},
                       "immolate": {'Primary Effect': 'Damage', 'Target': 'Enemy-ST', 'Damage': 4, 'Healing': None,
-                                   'Duration': 4, 'Cooldown': 2, 'Cast Time': 1}
+                                   'Duration': 4, 'Cooldown': 2, 'Cast Time': 1},
+                      # basic enemy abilities
+                      "basic attack": {'Primary Effect': 'Damage', 'Target': 'Enemy-ST', 'Damage': 5, 'Healing': None,
+                                       'Duration': None, 'Cooldown': None, 'Cast Time': None},
+                      "basic heal": {'Primary Effect': 'Heal', 'Target': 'Friendly-ST', 'Damage': 0, 'Healing': 5,
+                                     'Duration': None, 'Cooldown': None, 'Cast Time': None},
+                      "basic strike": {'Primary Effect': 'Damage', 'Target': 'Enemy-ST', 'Damage': 6, 'Healing': None,
+                                       'Duration': None, 'Cooldown': None, 'Cast Time': None}
                       }
 
 
