@@ -6,7 +6,6 @@
 #       Update basic combat to include enemy actions
 #               make enemies attacks automated
 #
-#       Make *Arena* for the battles to happen in (Include Health, and Current turn.)
 #       Give health a maximum value
 #       Potential long term addition of status effects such as Damage Reduction and make it effect attacks etc.
 #       separate classes from main and generally organize codebase
@@ -290,15 +289,45 @@ def print_ability_description(ability_dict, name):
     print(ability_string)
 
 
+def combat_area(allies, enemies, team_size=3):
+    print("*"*70)
+    place = 0
+    for i in range(team_size+1):
+        print("*" + " "*68 + "*")
+        if i < allies.__len__() and i < enemies.__len__():
+            print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(58-(len(allies[place].character_type) +
+                  len(enemies[place].character_type))) + enemies[place].character_type.capitalize() + " "*5 + "*")
+            print("*" + " " * 5 + allies[place].specialization.capitalize() + " " * (58 - (len(allies[place].specialization) +
+                  len(enemies[place].specialization))) + enemies[place].specialization.capitalize() + " " * 5 + "*")
+            print("*" + " "*5 + '%2d' % allies[place].health + " "*54 + '%2d' % enemies[place].health + " "*5 + "*")
+            place += 1
+        elif i < allies.__len__():
+            print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(60-len(allies[place].character_type) +
+                  len(enemies[place].charcter_type)) + " "*5 + "*")
+            print("*" + " " * 5 + allies[place].specialization.capitalize() + " " * (60 - len(allies[place].specialization)) +
+                  " " * 5 + "*")
+            print("*" + " "*10 + '%2d' + " "*60 + "*" % allies[place].health)
+            place += 1
+        elif i < enemies.__len__():
+            print("*" + " "*(63 - len(enemies[place].character_type)) + enemies[place].character_type.capitalize() + " "*5 +
+                  "*")
+            print("*" + " " * (63 - len(enemies[place].specialization)) + enemies[place].specialization.capitalize() + " " * 5 +
+                  "*")
+            print("*" + " "*61 + '%2d' % enemies[place].health + " "*5 + "*")
+            place += 1
+    print("*"*70 + '\n')
+
+
 def basic_combat(player):
-    enemy_list = [basic_enemy_creation('tank'), basic_enemy_creation('damage')]
+    enemy_list = [basic_enemy_creation('tank'), basic_enemy_creation('damage'), basic_enemy_creation('healer')]
     ally_list = [player]
     print("You have started Combat! Prepare yourself for battle.")
-    print("There are " + (enemy_list.__len__().__str__() + " enemies."))
 
     combat = 1
 
     while combat:
+        player.update_character_status()
+        combat_area(ally_list, enemy_list)
         if enemy_list[0].health <= 0:
             print("You have defeated your enemies and won the battle!")
             combat = 0
@@ -307,7 +336,7 @@ def basic_combat(player):
             combat = 0
 
         # start player turn
-        player.update_character_status()
+
         if player.status_effects['Crowd-Control']['CC-Status']:
             print("Your character is crowd-controlled and can not cast right now.")
         else:
@@ -318,8 +347,9 @@ def basic_combat(player):
 
             choice = 0
             while not choice:
+                print("Here is a list of your abilities:")
                 for index, ability in enumerate(player.current_abilities):
-                    print((index+1).__str__() + ": Ability " + (index+1).__str__() + " is " + ability + ".")
+                    print((index+1).__str__() + ability.capitalize() + ".")
                 choice = int(input("Choose an ability by entering its number: "))
                 if choice not in range(1, player.current_abilities.__len__()+1):
                     choice = 0
@@ -333,8 +363,6 @@ def basic_combat(player):
             chosen_target = 0
             if total_ability_dictionary[player.current_abilities[choice-1]]['Target'] == 'Enemy-ST':
                 print("Choose a target for your attack.")
-                for index, enemy in enumerate(enemy_list):
-                    print("Enemy " + (index+1).__str__() + " has " + enemy.health.__str__() + " health left.")
                 while not chosen_target:
                     chosen_target = int(input("Enter enemy number -> "))
                     if chosen_target not in range(1, enemy_list.__len__()+1):
