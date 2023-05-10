@@ -2,7 +2,6 @@
 #                                TO DO LIST
 #
 #       Differentiate between spec types and give different health values accordingly
-#       need to update endgame to check for all enemy healths and friendly healths
 #       Update basic combat to include enemy actions
 #               make enemies attacks automated
 #
@@ -297,29 +296,30 @@ def combat_area(allies, enemies, team_size=3):
         if i < allies.__len__() and i < enemies.__len__():
             print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(58-(len(allies[place].character_type) +
                   len(enemies[place].character_type))) + enemies[place].character_type.capitalize() + " "*5 + "*")
-            print("*" + " " * 5 + allies[place].specialization.capitalize() + " " * (58 - (len(allies[place].specialization) +
-                  len(enemies[place].specialization))) + enemies[place].specialization.capitalize() + " " * 5 + "*")
+            print("*" + " "*2 + str(i+1) + "  " + allies[place].specialization.capitalize() + " " *
+                  (58 - (len(allies[place].specialization) + len(enemies[place].specialization))) +
+                  enemies[place].specialization.capitalize() + "  " + str(i+1) + " "*2 + "*")
             print("*" + " "*5 + '%2d' % allies[place].health + " "*54 + '%2d' % enemies[place].health + " "*5 + "*")
             place += 1
         elif i < allies.__len__():
             print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(60-len(allies[place].character_type) +
                   len(enemies[place].charcter_type)) + " "*5 + "*")
-            print("*" + " " * 5 + allies[place].specialization.capitalize() + " " * (60 - len(allies[place].specialization)) +
-                  " " * 5 + "*")
+            print("*" + " "*2 + str(i+1) + "  " + allies[place].specialization.capitalize() + " " *
+                  (60 - len(allies[place].specialization)) + " " * 5 + "*")
             print("*" + " "*10 + '%2d' + " "*60 + "*" % allies[place].health)
             place += 1
         elif i < enemies.__len__():
-            print("*" + " "*(63 - len(enemies[place].character_type)) + enemies[place].character_type.capitalize() + " "*5 +
-                  "*")
-            print("*" + " " * (63 - len(enemies[place].specialization)) + enemies[place].specialization.capitalize() + " " * 5 +
-                  "*")
+            print("*" + " "*(63 - len(enemies[place].character_type)) + enemies[place].character_type.capitalize() +
+                  " "*5 + "*")
+            print("*" + " " * (63 - len(enemies[place].specialization)) + enemies[place].specialization.capitalize() +
+                  "  " + str(i + 1) + " " * 2 + "*")
             print("*" + " "*61 + '%2d' % enemies[place].health + " "*5 + "*")
             place += 1
     print("*"*70 + '\n')
 
 
 def basic_combat(player):
-    enemy_list = [basic_enemy_creation('tank'), basic_enemy_creation('damage'), basic_enemy_creation('healer')]
+    enemy_list = [basic_enemy_creation('tank'), basic_enemy_creation('damage')]
     ally_list = [player]
     print("You have started Combat! Prepare yourself for battle.")
 
@@ -328,13 +328,9 @@ def basic_combat(player):
     while combat:
         player.update_character_status()
         combat_area(ally_list, enemy_list)
-        if enemy_list[0].health <= 0:
-            print("You have defeated your enemies and won the battle!")
-            combat = 0
-        elif player.health <= 0:
-            print("You have been defeated and lost the battle.")
-            combat = 0
-
+        if death_checker(ally_list, enemy_list):
+            print(death_checker(ally_list, enemy_list))
+            break
         # start player turn
 
         if player.status_effects['Crowd-Control']['CC-Status']:
@@ -349,8 +345,8 @@ def basic_combat(player):
             while not choice:
                 print("Here is a list of your abilities:")
                 for index, ability in enumerate(player.current_abilities):
-                    print((index+1).__str__() + ability.capitalize() + ".")
-                choice = int(input("Choose an ability by entering its number: "))
+                    print((index+1).__str__() + ": " + ability.capitalize())
+                choice = int(input("Choose an ability by entering its number -> "))
                 if choice not in range(1, player.current_abilities.__len__()+1):
                     choice = 0
                     print("You did not make a proper selection. Please choose an ability from the list that is not on "
@@ -399,13 +395,29 @@ def basic_combat(player):
             perform_ability(total_ability_dictionary[player.current_abilities[choice-1]], 0, chosen_target-1,
                             ally_list, enemy_list, f_o_f)
         # end player turn
-        # need to update endgame to check for all enemy healths and friendly healths
-        if enemy_list[0].health <= 0:
-            print("You have defeated your enemies and won the battle!")
-            combat = 0
-        elif player.health <= 0:
-            print("You have been defeated and lost the battle.")
-            combat = 0
+
+        if death_checker(ally_list, enemy_list):
+            print(death_checker(ally_list, enemy_list))
+            break
+
+
+def death_checker(allies, enemies):
+    ally_check = 0
+    enemy_check = 0
+    for ally in allies:
+        if ally.health >= 1:
+            ally_check = 1
+    for enemy in enemies:
+        if enemy.health >= 1:
+            enemy_check = 1
+    if enemy_check and ally_check:
+        return 0
+    elif ally_check:
+        return "Well done! Your team has defeated all enemies and won the battle!"
+    elif enemy_check:
+        return "Damn! Your team has been defeated and lost the battle!"
+    else:
+        return "Well this is awkward. Both teams have been defeated and lost the battle!"
 
 
 # self and target and numbers that represent their positions in allies[] and enemies[]
