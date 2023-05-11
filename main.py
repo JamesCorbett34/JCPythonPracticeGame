@@ -2,14 +2,15 @@
 #                                TO DO LIST
 #
 #       Differentiate between spec types and give different health values accordingly
-#       Update basic combat to include enemy actions
-#               make enemies attacks automated
+#       Finish basic combat for enemies and other automated characters
+#           add update status for npcs
+#           add print notifications for which attack and target the npc chose
 #
 #       Give health a maximum value
 #       Potential long term addition of status effects such as Damage Reduction and make it effect attacks etc.
 #       separate classes from main and generally organize codebase
 ###########################################################################################
-
+import random
 
 class Character:
 
@@ -25,7 +26,7 @@ class Character:
                                            'Damage-Value': None},
                       'Healing-Over-Time': {'Healing-Status':  None, 'Healing-Length': 0, 'Healing-Type': None,
                                             'Healing-Value': None},
-                      'Ability-Cooldowns': {'Ability-1': None, 'Ability-2': None, 'Ability-3': None}}
+                      'Ability-Cooldowns': {'Ability-0': None, 'Ability-1': None, 'Ability-2': None, 'Ability-3': None}}
 
     char_dictionary = {'death knight': {"unholy": {"festering strike", "spread disease", "scourge strike"},
                                         "frost": {"obliterate", "remorseless winter", "breath of sindragosa"},
@@ -328,77 +329,137 @@ def basic_combat(player):
     while combat:
         player.update_character_status()
         combat_area(ally_list, enemy_list)
+
+        if death_checker(ally_list, enemy_list):
+            print("\nGot to first death check ")
+            print(death_checker(ally_list, enemy_list))
+            break
+
+        for index, ally in enumerate(ally_list):
+            print("\nGot to turn " + str(int(index)))
+            if ally is player:
+                player_turn(index, ally_list, enemy_list)
+            else:
+                npc_turn(index, ally_list, enemy_list)
+
+        if death_checker(ally_list, enemy_list):
+            print("\nGot to second death check ")
+            print(death_checker(ally_list, enemy_list))
+            break
+
+        for index, enemy in enumerate(enemy_list):
+            if enemy is player:
+                player_turn(index, enemy_list, ally_list)
+            else:
+                npc_turn(index, enemy_list, ally_list)
+
         if death_checker(ally_list, enemy_list):
             print(death_checker(ally_list, enemy_list))
             break
-        # start player turn
 
-        if player.status_effects['Crowd-Control']['CC-Status']:
-            print("Your character is crowd-controlled and can not cast right now.")
-        else:
-            for ability_cd in player.status_effects['Ability-Cooldowns']:
-                if player.status_effects['Ability-Cooldowns'][ability_cd]:
-                    print(ability_cd + " is on cooldown for " + player.status_effects['Ability-Cooldowns'][
-                        ability_cd] + " turns.")
 
-            choice = 0
-            while not choice:
-                print("Here is a list of your abilities:")
-                for index, ability in enumerate(player.current_abilities):
-                    print((index+1).__str__() + ": " + ability.capitalize())
-                choice = int(input("Choose an ability by entering its number -> "))
-                if choice not in range(1, player.current_abilities.__len__()+1):
-                    choice = 0
-                    print("You did not make a proper selection. Please choose an ability from the list that is not on "
-                          "cooldown.\n")
-                elif player.status_effects['Ability-Cooldowns']['Ability-'+choice.__str__()]:
-                    choice = 0
-                    print("You did not make a proper selection. Please choose an ability from the list that is not on "
-                          "cooldown.\n")
-            # choosing a target for single target abilities
-            chosen_target = 0
-            if total_ability_dictionary[player.current_abilities[choice-1]]['Target'] == 'Enemy-ST':
+def npc_turn(npc_position, allies, enemies):
+    if allies[npc_position].status_effects['Crowd-Control']['CC-Status']:
+        print(allies[npc_position].character_type + " is crowd-controlled and can not cast right now.")
+    else:
+        choice = 0
+        while not choice:
+            choice = random.randint(0, allies[npc_position].current_abilities.__len__())
+            if allies[npc_position].status_effects['Ability-Cooldowns']['Ability-' + choice.__str__()]:
+                choice = 0
+        # choosing a target for single target abilities
+        print("choice = " + str(choice))
+        chosen_target = 0
+
+        print(" ".join(allies[npc_position].current_abilities) + "\n")
+        if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Enemy-ST':
+            print("NPC choosing a target for its attack.")
+
+            chosen_target = random.randint(0, enemies.__len__()-1)
+
+        if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Friendly-ST':
+            print("NPC choosing a target for its heal.")
+            while not chosen_target:
+                chosen_target = random.randint(0, allies.__len__()-1)
+        f_o_f = 0
+        if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Hybrid-ST':
+            # This line causes all enemy hybrid abilities to be attacks. (Make games faster until otherwise decided)
+            f_o_f = 1
+            if f_o_f:
                 print("Choose a target for your attack.")
+                chosen_target = random.randint(0, enemies.__len__()-1)
+            else:
+                print("Choose a target for your heal.")
+                chosen_target = random.randint(0, allies.__len__()-1)
+
+        print("\n")
+        print("chosen_target = " + str(chosen_target) + "    ")
+        perform_ability(total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]], npc_position,
+                        chosen_target, allies, enemies, f_o_f)
+
+
+def player_turn(player_position, allies, enemies):
+    if allies[player_position].status_effects['Crowd-Control']['CC-Status']:
+        print("Your character is crowd-controlled and can not cast right now.")
+    else:
+        for ability_cd in allies[player_position].status_effects['Ability-Cooldowns']:
+            if allies[player_position].status_effects['Ability-Cooldowns'][ability_cd]:
+                print(ability_cd + " is on cooldown for " + allies[player_position].status_effects['Ability-Cooldowns'][
+                    ability_cd] + " turns.")
+
+        choice = 0
+        while not choice:
+            print("Here is a list of your abilities:")
+            for index, ability in enumerate(allies[player_position].current_abilities):
+                print((index + 1).__str__() + ": " + ability.capitalize())
+            choice = int(input("Choose an ability by entering its number -> "))
+            if choice not in range(1, allies[player_position].current_abilities.__len__() + 1):
+                choice = 0
+                print("You did not make a proper selection. Please choose an ability from the list that is not on "
+                      "cooldown.\n")
+            elif allies[player_position].status_effects['Ability-Cooldowns']['Ability-' + choice.__str__()]:
+                choice = 0
+                print("You did not make a proper selection. Please choose an ability from the list that is not on "
+                      "cooldown.\n")
+        # choosing a target for single target abilities
+        chosen_target = 0
+        if total_ability_dictionary[allies[player_position].current_abilities[choice - 1]]['Target'] == 'Enemy-ST':
+            print("Choose a target for your attack.")
+            while not chosen_target:
+                chosen_target = int(input("Enter enemy number -> "))
+                if chosen_target not in range(1, enemies.__len__() + 1):
+                    chosen_target = 0
+        if total_ability_dictionary[allies[player_position].current_abilities[choice - 1]]['Target'] == 'Friendly-ST':
+            print("Choose a target for your heal.")
+            for index, ally in enumerate(allies):
+                print("Ally " + (index + 1).__str__() + " has " + ally.health.__str__() + " health left.")
+            while not chosen_target:
+                chosen_target = int(input("Enter ally number -> "))
+                if chosen_target not in range(1, allies.__len__() + 1):
+                    chosen_target = 0
+        f_o_f = 0
+        if total_ability_dictionary[allies[player_position].current_abilities[choice - 1]]['Target'] == 'Hybrid-ST':
+            f_o_f = int(input("With this hybrid ability you must first you must choose to attack or heal."
+                              " Press 0 to heal or 1 to attack -> "))
+            if f_o_f:
+                print("Choose a target for your attack.")
+                for index, enemy in enumerate(enemies):
+                    print("Enemy " + (index + 1).__str__() + " has " + enemy.health.__str__() + " health left.")
                 while not chosen_target:
                     chosen_target = int(input("Enter enemy number -> "))
-                    if chosen_target not in range(1, enemy_list.__len__()+1):
+                    if chosen_target not in range(1, enemies.__len__() + 1):
                         chosen_target = 0
-            if total_ability_dictionary[player.current_abilities[choice-1]]['Target'] == 'Friendly-ST':
+            else:
                 print("Choose a target for your heal.")
-                for index, ally in enumerate(ally_list):
-                    print("Ally " + (index+1).__str__() + " has " + ally.health.__str__() + " health left.")
+                for index, ally in enumerate(allies):
+                    print("Ally " + (index + 1).__str__() + " has " + ally.health.__str__() + " health left.")
                 while not chosen_target:
                     chosen_target = int(input("Enter ally number -> "))
-                    if chosen_target not in range(1, ally_list.__len__()+1):
+                    if chosen_target not in range(1, allies.__len__() + 1):
                         chosen_target = 0
-            f_o_f = 0
-            if total_ability_dictionary[player.current_abilities[choice-1]]['Target'] == 'Hybrid-ST':
-                f_o_f = int(input("With this hybrid ability you must first you must choose to attack or heal."
-                                  " Press 0 to heal or 1 to attack -> "))
-                if f_o_f:
-                    print("Choose a target for your attack.")
-                    for index, enemy in enumerate(enemy_list):
-                        print("Enemy " + (index+1).__str__() + " has " + enemy.health.__str__() + " health left.")
-                    while not chosen_target:
-                        chosen_target = int(input("Enter enemy number -> "))
-                        if chosen_target not in range(1, enemy_list.__len__()+1):
-                            chosen_target = 0
-                else:
-                    print("Choose a target for your heal.")
-                    for index, ally in enumerate(ally_list):
-                        print("Ally " + (index+1).__str__() + " has " + ally.health.__str__() + " health left.")
-                    while not chosen_target:
-                        chosen_target = int(input("Enter ally number -> "))
-                        if chosen_target not in range(1, ally_list.__len__()+1):
-                            chosen_target = 0
-            print("\n")
-            perform_ability(total_ability_dictionary[player.current_abilities[choice-1]], 0, chosen_target-1,
-                            ally_list, enemy_list, f_o_f)
-        # end player turn
-
-        if death_checker(ally_list, enemy_list):
-            print(death_checker(ally_list, enemy_list))
-            break
+        print("\n")
+        perform_ability(total_ability_dictionary[allies[player_position].current_abilities[choice - 1]], player_position,
+                        chosen_target - 1, allies, enemies, f_o_f)
 
 
 def death_checker(allies, enemies):

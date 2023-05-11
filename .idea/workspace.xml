@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Created the combat_area function which creates an area that shows the layout of the fight including ally and enemy health values. Fixed various formatting errors with print statements as well.">
+    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Updated death_check to check for both allies and enemies and return a print value if the game has reached an end state. Updated combat_area and basic combat formatting.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -80,7 +80,14 @@
       <option name="project" value="LOCAL" />
       <updated>1683647977193</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Updated death_check to check for both allies and enemies and return a print value if the game has reached an end state. Updated combat_area and basic combat formatting.">
+      <created>1683730594202</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1683730594202</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -112,6 +119,7 @@
     <MESSAGE value="Updated To-Do list with stuff I have been considering since last session. Added &quot;basic-enemy&quot; to character dictionary. Changed constructer and functionality of some character methods to allow for creation of 'basic-enemies'" />
     <MESSAGE value="Updated Basic combat to have basic enemies instead of simple int health values. Updated all the methods that were previously using int values to &quot;health&quot; values. Also updated perform_ability to execute stun effects." />
     <MESSAGE value="Created the combat_area function which creates an area that shows the layout of the fight including ally and enemy health values. Fixed various formatting errors with print statements as well." />
-    <option name="LAST_COMMIT_MESSAGE" value="Created the combat_area function which creates an area that shows the layout of the fight including ally and enemy health values. Fixed various formatting errors with print statements as well." />
+    <MESSAGE value="Updated death_check to check for both allies and enemies and return a print value if the game has reached an end state. Updated combat_area and basic combat formatting." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated death_check to check for both allies and enemies and return a print value if the game has reached an end state. Updated combat_area and basic combat formatting." />
   </component>
 </project>
