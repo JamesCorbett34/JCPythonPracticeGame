@@ -6,11 +6,13 @@
 #           add update status for npcs
 #           add print notifications for which attack and target the npc chose
 #
+#       Test ability with cooldown and make sure they are not usable when on cd
 #       Give health a maximum value
 #       Potential long term addition of status effects such as Damage Reduction and make it effect attacks etc.
 #       separate classes from main and generally organize codebase
 ###########################################################################################
 import random
+
 
 class Character:
 
@@ -321,37 +323,41 @@ def combat_area(allies, enemies, team_size=3):
 
 def basic_combat(player):
     enemy_list = [basic_enemy_creation('tank'), basic_enemy_creation('damage')]
-    ally_list = [player]
+    ally_list = [player, basic_enemy_creation('tank')]
     print("You have started Combat! Prepare yourself for battle.")
 
     combat = 1
 
     while combat:
-        player.update_character_status()
-        combat_area(ally_list, enemy_list)
 
+        combat_area(ally_list, enemy_list)
         if death_checker(ally_list, enemy_list):
-            print("\nGot to first death check ")
             print(death_checker(ally_list, enemy_list))
             break
 
         for index, ally in enumerate(ally_list):
-            print("\nGot to turn " + str(int(index)))
-            if ally is player:
+            if ally.health <= 0:
+                print(ally.name + " the " + ally.character_type + " is dead and can't make a move.")
+            elif ally is player:
                 player_turn(index, ally_list, enemy_list)
             else:
                 npc_turn(index, ally_list, enemy_list)
+            ally.update_character_status()
 
         if death_checker(ally_list, enemy_list):
-            print("\nGot to second death check ")
             print(death_checker(ally_list, enemy_list))
             break
 
+        combat_area(ally_list, enemy_list)
+
         for index, enemy in enumerate(enemy_list):
-            if enemy is player:
+            if enemy.health <= 0:
+                print(enemy.name + " the " + enemy.character_type + " is dead and can't make a move.")
+            elif enemy is player:
                 player_turn(index, enemy_list, ally_list)
             else:
                 npc_turn(index, enemy_list, ally_list)
+            enemy.update_character_status()
 
         if death_checker(ally_list, enemy_list):
             print(death_checker(ally_list, enemy_list))
@@ -367,18 +373,13 @@ def npc_turn(npc_position, allies, enemies):
             choice = random.randint(0, allies[npc_position].current_abilities.__len__())
             if allies[npc_position].status_effects['Ability-Cooldowns']['Ability-' + choice.__str__()]:
                 choice = 0
-        # choosing a target for single target abilities
-        print("choice = " + str(choice))
+
         chosen_target = 0
 
-        print(" ".join(allies[npc_position].current_abilities) + "\n")
         if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Enemy-ST':
-            print("NPC choosing a target for its attack.")
-
             chosen_target = random.randint(0, enemies.__len__()-1)
 
         if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Friendly-ST':
-            print("NPC choosing a target for its heal.")
             while not chosen_target:
                 chosen_target = random.randint(0, allies.__len__()-1)
         f_o_f = 0
@@ -392,8 +393,7 @@ def npc_turn(npc_position, allies, enemies):
                 print("Choose a target for your heal.")
                 chosen_target = random.randint(0, allies.__len__()-1)
 
-        print("\n")
-        print("chosen_target = " + str(chosen_target) + "    ")
+        print("The enemy has chosen to use " + allies[npc_position].current_abilities[choice - 1] + "\n")
         perform_ability(total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]], npc_position,
                         chosen_target, allies, enemies, f_o_f)
 
@@ -457,7 +457,6 @@ def player_turn(player_position, allies, enemies):
                     chosen_target = int(input("Enter ally number -> "))
                     if chosen_target not in range(1, allies.__len__() + 1):
                         chosen_target = 0
-        print("\n")
         perform_ability(total_ability_dictionary[allies[player_position].current_abilities[choice - 1]], player_position,
                         chosen_target - 1, allies, enemies, f_o_f)
 
@@ -474,11 +473,11 @@ def death_checker(allies, enemies):
     if enemy_check and ally_check:
         return 0
     elif ally_check:
-        return "Well done! Your team has defeated all enemies and won the battle!"
+        return "\nWell done! Your team has defeated all enemies and won the battle!"
     elif enemy_check:
-        return "Damn! Your team has been defeated and lost the battle!"
+        return "\nDamn! Your team has been defeated and lost the battle!"
     else:
-        return "Well this is awkward. Both teams have been defeated and lost the battle!"
+        return "\nWell this is awkward. Both teams have been defeated and lost the battle!"
 
 
 # self and target and numbers that represent their positions in allies[] and enemies[]
