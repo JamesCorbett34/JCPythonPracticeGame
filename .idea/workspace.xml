@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="">
+    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Added updates to both ally and enemy turns that aren't the player. Cleaned up various formatting errors and leftover print statements. Added a check before everyone's turn to check health and skip turn if they are &quot;dead&quot;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -94,7 +94,14 @@
       <option name="project" value="LOCAL" />
       <updated>1683821900775</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added updates to both ally and enemy turns that aren't the player. Cleaned up various formatting errors and leftover print statements. Added a check before everyone's turn to check health and skip turn if they are &quot;dead&quot;">
+      <created>1683906507579</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1683906507579</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -128,6 +135,7 @@
     <MESSAGE value="Created the combat_area function which creates an area that shows the layout of the fight including ally and enemy health values. Fixed various formatting errors with print statements as well." />
     <MESSAGE value="Updated death_check to check for both allies and enemies and return a print value if the game has reached an end state. Updated combat_area and basic combat formatting." />
     <MESSAGE value="Created a &quot;player_turn&quot; function to help clean up combat function as well as provide functionality for multiplayer in the future by allowing dynamic selection of the &quot;player&quot; from allies. Enemy combat! added &quot;npc_turn&quot; which allows enemies to perform attacks without user input." />
-    <option name="LAST_COMMIT_MESSAGE" value="Created a &quot;player_turn&quot; function to help clean up combat function as well as provide functionality for multiplayer in the future by allowing dynamic selection of the &quot;player&quot; from allies. Enemy combat! added &quot;npc_turn&quot; which allows enemies to perform attacks without user input." />
+    <MESSAGE value="Added updates to both ally and enemy turns that aren't the player. Cleaned up various formatting errors and leftover print statements. Added a check before everyone's turn to check health and skip turn if they are &quot;dead&quot;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added updates to both ally and enemy turns that aren't the player. Cleaned up various formatting errors and leftover print statements. Added a check before everyone's turn to check health and skip turn if they are &quot;dead&quot;" />
   </component>
 </project>

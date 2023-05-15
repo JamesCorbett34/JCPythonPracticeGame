@@ -2,12 +2,10 @@
 #                                TO DO LIST
 #
 #       Differentiate between spec types and give different health values accordingly
-#       Finish basic combat for enemies and other automated characters
-#           add update status for npcs
-#           add print notifications for which attack and target the npc chose
+#       Update formatting of combat arena to include character names
+#       update basic enemy archetype to basic npc for clarity
 #
 #       Test ability with cooldown and make sure they are not usable when on cd
-#       Give health a maximum value
 #       Potential long term addition of status effects such as Damage Reduction and make it effect attacks etc.
 #       separate classes from main and generally organize codebase
 ###########################################################################################
@@ -21,6 +19,7 @@ class Character:
     character_type = None
     current_abilities = []
     health = 30
+    max_health = 30
 
     status_effects = {'Crowd-Control': {'CC-Status':  None, 'CC-Length': 0, 'CC-Type': None},
                       'Cast-Bar': {'Cast-Status': None, 'Cast-Length': 0, 'Cast-Info': {}, 'Cast-Target': (""*5)},
@@ -124,6 +123,8 @@ class Character:
         print("\n")
 
     def update_character_status(self):
+        if self.health > self.max_health:
+            self.health = self.max_health
         if self.status_effects['Damage-Over-Time']['Damage-Status']:
             self.health -= self.status_effects['Damage-Over-Time']['Damage-Value']
             self.status_effects['Damage-Over-Time']['Damage-Length'] -= 1
@@ -207,10 +208,10 @@ def player_character_creation():
     return brand_new_character
 
 
-def basic_enemy_creation(enemy_type):
-    brand_new_character = Character('Basic Enemy')
+def basic_npc_creation(npc_type, npc_name):
+    brand_new_character = Character(npc_name)
     brand_new_character.choose_class('basic-enemy')
-    brand_new_character.set_specialization(enemy_type)
+    brand_new_character.set_specialization(npc_type)
     brand_new_character.print_properties()
     brand_new_character.print_status_effects()
     return brand_new_character
@@ -291,10 +292,14 @@ def print_ability_description(ability_dict, name):
     print(ability_string)
 
 
-def combat_area(allies, enemies, team_size=3):
+def combat_area(allies, enemies):
+    if len(allies) < len(enemies):
+        team_size = len(enemies)
+    else:
+        team_size = len(allies)
     print("*"*70)
     place = 0
-    for i in range(team_size+1):
+    for i in range(team_size):
         print("*" + " "*68 + "*")
         if i < allies.__len__() and i < enemies.__len__():
             print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(58-(len(allies[place].character_type) +
@@ -305,11 +310,11 @@ def combat_area(allies, enemies, team_size=3):
             print("*" + " "*5 + '%2d' % allies[place].health + " "*54 + '%2d' % enemies[place].health + " "*5 + "*")
             place += 1
         elif i < allies.__len__():
-            print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(60-len(allies[place].character_type) +
-                  len(enemies[place].charcter_type)) + " "*5 + "*")
+            print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(60-len(allies[place].character_type)) +
+                  " "*4 + "*")
             print("*" + " "*2 + str(i+1) + "  " + allies[place].specialization.capitalize() + " " *
                   (60 - len(allies[place].specialization)) + " " * 5 + "*")
-            print("*" + " "*10 + '%2d' + " "*60 + "*" % allies[place].health)
+            print("*" + " "*5 + '%2d' % allies[place].health + " "*61 + "*")
             place += 1
         elif i < enemies.__len__():
             print("*" + " "*(63 - len(enemies[place].character_type)) + enemies[place].character_type.capitalize() +
@@ -318,12 +323,13 @@ def combat_area(allies, enemies, team_size=3):
                   "  " + str(i + 1) + " " * 2 + "*")
             print("*" + " "*61 + '%2d' % enemies[place].health + " "*5 + "*")
             place += 1
+    print("*" + " " * 68 + "*")
     print("*"*70 + '\n')
 
 
 def basic_combat(player):
-    enemy_list = [basic_enemy_creation('tank'), basic_enemy_creation('damage')]
-    ally_list = [player, basic_enemy_creation('tank')]
+    enemy_list = [basic_npc_creation('tank', 'enemy tank'), basic_npc_creation('damage', 'enemy dps')]
+    ally_list = [player, basic_npc_creation('tank', 'ally tank')]
     print("You have started Combat! Prepare yourself for battle.")
 
     combat = 1
@@ -337,7 +343,8 @@ def basic_combat(player):
 
         for index, ally in enumerate(ally_list):
             if ally.health <= 0:
-                print(ally.name + " the " + ally.character_type + " is dead and can't make a move.")
+                print(ally.name + " the " + ally.character_type.capitalize() + " is dead and can't make a move.")
+                ally_list.pop(index)
             elif ally is player:
                 player_turn(index, ally_list, enemy_list)
             else:
@@ -352,7 +359,8 @@ def basic_combat(player):
 
         for index, enemy in enumerate(enemy_list):
             if enemy.health <= 0:
-                print(enemy.name + " the " + enemy.character_type + " is dead and can't make a move.")
+                print(enemy.name + " the " + enemy.character_type.capitalize() + " is dead and can't make a move.")
+                enemy_list.pop(index)
             elif enemy is player:
                 player_turn(index, enemy_list, ally_list)
             else:
@@ -365,6 +373,7 @@ def basic_combat(player):
 
 
 def npc_turn(npc_position, allies, enemies):
+    f_o_f = 0
     if allies[npc_position].status_effects['Crowd-Control']['CC-Status']:
         print(allies[npc_position].character_type + " is crowd-controlled and can not cast right now.")
     else:
@@ -378,22 +387,25 @@ def npc_turn(npc_position, allies, enemies):
 
         if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Enemy-ST':
             chosen_target = random.randint(0, enemies.__len__()-1)
-
+            f_o_f = 1
         if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Friendly-ST':
             while not chosen_target:
                 chosen_target = random.randint(0, allies.__len__()-1)
-        f_o_f = 0
+
         if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Hybrid-ST':
             # This line causes all enemy hybrid abilities to be attacks. (Make games faster until otherwise decided)
             f_o_f = 1
             if f_o_f:
-                print("Choose a target for your attack.")
                 chosen_target = random.randint(0, enemies.__len__()-1)
             else:
-                print("Choose a target for your heal.")
                 chosen_target = random.randint(0, allies.__len__()-1)
 
-        print("The enemy has chosen to use " + allies[npc_position].current_abilities[choice - 1] + "\n")
+        if f_o_f:
+            print("The enemy has chosen to use " + allies[npc_position].current_abilities[
+                choice - 1] + " and their target was the enemy " + enemies[chosen_target].character_type + "\n")
+        else:
+            print("The enemy has chosen to use " + allies[npc_position].current_abilities[
+                choice - 1] + " and their target was the ally " + allies[chosen_target].character_type + "\n")
         perform_ability(total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]], npc_position,
                         chosen_target, allies, enemies, f_o_f)
 
