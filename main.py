@@ -3,9 +3,10 @@
 #
 #       Differentiate between spec types and give different health values accordingly
 #       Update formatting of combat arena to include character names
-#       update basic enemy archetype to basic npc for clarity
 #
-#       Test ability with cooldown and make sure they are not usable when on cd
+#       Figure out if dictionaries made inside a class are shared by all members of the class
+#       and use that info to fix status_effects
+#
 #       Potential long term addition of status effects such as Damage Reduction and make it effect attacks etc.
 #       separate classes from main and generally organize codebase
 ###########################################################################################
@@ -26,8 +27,8 @@ class Character:
                       'Damage-Over-Time': {'Damage-Status':  None, 'Damage-Length': 0, 'Damage-Type': None,
                                            'Damage-Value': None},
                       'Healing-Over-Time': {'Healing-Status':  None, 'Healing-Length': 0, 'Healing-Type': None,
-                                            'Healing-Value': None},
-                      'Ability-Cooldowns': {'Ability-0': None, 'Ability-1': None, 'Ability-2': None, 'Ability-3': None}}
+                                            'Healing-Value': 0},
+                      'Ability-Cooldowns': {'Ability-0': 0, 'Ability-1': 0, 'Ability-2': 0, 'Ability-3': 0}}
 
     char_dictionary = {'death knight': {"unholy": {"festering strike", "spread disease", "scourge strike"},
                                         "frost": {"obliterate", "remorseless winter", "breath of sindragosa"},
@@ -67,9 +68,9 @@ class Character:
                        "warlock": {"affliction": {"curse of agony", "shadow bolt", "corruption"},
                                    "demonology": {"hand of guldan", "demonic skin", "shadowfury"},
                                    "destruction": {"chaos bolt", "incinerate", "immolate"}},
-                       "basic-enemy": {"tank": {"basic attack"},
-                                       "healer": {"basic heal"},
-                                       "damage": {"basic strike"}}}
+                       "basic-npc": {"tank": {"basic attack"},
+                                     "healer": {"basic heal"},
+                                     "damage": {"basic strike"}}}
 
     def __init__(self, name):
         self.name = name
@@ -95,8 +96,8 @@ class Character:
             while choice not in self.char_dictionary[self.character_type]:
                 choice = input(
                     "Please write the name of your preferred specialization for " + self.character_type.capitalize() +
-                    "\nYour choices are " + ", ".join(c.capitalize() for c in self.char_dictionary[self.character_type]) +
-                    "\nEnter Choice ->").lower()
+                    "\nYour choices are " + ", ".join(c.capitalize() for c in self.char_dictionary[self.character_type])
+                    + "\nEnter Choice ->").lower()
                 if choice not in self.char_dictionary[self.character_type]:
                     print("You did not make an appropriate selection or it was misspelled.\n")
             self.specialization = choice
@@ -197,23 +198,25 @@ class Character:
             else:
                 self.status_effects['Cast-Bar']['Cast-Length'] -= 1
 
+        for ability in self.status_effects['Ability-Cooldowns']:
+            if self.status_effects['Ability-Cooldowns'][ability] >= 1:
+                print(self.character_type + " " + ability + " cooldown has been reduced by 1")
+                self.status_effects['Ability-Cooldowns'][ability] -= 1
+
+
 
 def player_character_creation():
     name = input("Please enter your character's name: ")
     brand_new_character = Character(name)
     brand_new_character.choose_class()
     brand_new_character.set_specialization()
-    brand_new_character.print_properties()
-    brand_new_character.print_status_effects()
     return brand_new_character
 
 
 def basic_npc_creation(npc_type, npc_name):
     brand_new_character = Character(npc_name)
-    brand_new_character.choose_class('basic-enemy')
+    brand_new_character.choose_class('basic-npc')
     brand_new_character.set_specialization(npc_type)
-    brand_new_character.print_properties()
-    brand_new_character.print_status_effects()
     return brand_new_character
 
 
@@ -311,14 +314,14 @@ def combat_area(allies, enemies):
             place += 1
         elif i < allies.__len__():
             print("*" + " "*5 + allies[place].character_type.capitalize() + " "*(60-len(allies[place].character_type)) +
-                  " "*4 + "*")
+                  " "*3 + "*")
             print("*" + " "*2 + str(i+1) + "  " + allies[place].specialization.capitalize() + " " *
-                  (60 - len(allies[place].specialization)) + " " * 5 + "*")
+                  (60 - len(allies[place].specialization)) + " " * 3 + "*")
             print("*" + " "*5 + '%2d' % allies[place].health + " "*61 + "*")
             place += 1
         elif i < enemies.__len__():
             print("*" + " "*(63 - len(enemies[place].character_type)) + enemies[place].character_type.capitalize() +
-                  " "*5 + "*")
+                  " "*4 + "*")
             print("*" + " " * (63 - len(enemies[place].specialization)) + enemies[place].specialization.capitalize() +
                   "  " + str(i + 1) + " " * 2 + "*")
             print("*" + " "*61 + '%2d' % enemies[place].health + " "*5 + "*")
@@ -342,14 +345,15 @@ def basic_combat(player):
             break
 
         for index, ally in enumerate(ally_list):
+            ally.update_character_status()
             if ally.health <= 0:
-                print(ally.name + " the " + ally.character_type.capitalize() + " is dead and can't make a move.")
+                print(ally.name + " the " + ally.character_type.capitalize() +
+                      " is dead and has been removed from battle.")
                 ally_list.pop(index)
             elif ally is player:
                 player_turn(index, ally_list, enemy_list)
             else:
                 npc_turn(index, ally_list, enemy_list)
-            ally.update_character_status()
 
         if death_checker(ally_list, enemy_list):
             print(death_checker(ally_list, enemy_list))
@@ -358,6 +362,7 @@ def basic_combat(player):
         combat_area(ally_list, enemy_list)
 
         for index, enemy in enumerate(enemy_list):
+            enemy.update_character_status()
             if enemy.health <= 0:
                 print(enemy.name + " the " + enemy.character_type.capitalize() + " is dead and can't make a move.")
                 enemy_list.pop(index)
@@ -365,7 +370,6 @@ def basic_combat(player):
                 player_turn(index, enemy_list, ally_list)
             else:
                 npc_turn(index, enemy_list, ally_list)
-            enemy.update_character_status()
 
         if death_checker(ally_list, enemy_list):
             print(death_checker(ally_list, enemy_list))
@@ -377,22 +381,22 @@ def npc_turn(npc_position, allies, enemies):
     if allies[npc_position].status_effects['Crowd-Control']['CC-Status']:
         print(allies[npc_position].character_type + " is crowd-controlled and can not cast right now.")
     else:
-        choice = 0
-        while not choice:
-            choice = random.randint(0, allies[npc_position].current_abilities.__len__())
-            if allies[npc_position].status_effects['Ability-Cooldowns']['Ability-' + choice.__str__()]:
-                choice = 0
+        selection = random.randint(0, allies[npc_position].current_abilities.__len__())
+        while allies[npc_position].status_effects['Ability-Cooldowns']['Ability-' + selection.__str__()]:
+            print("The enemy has no abilities available and is in a loop" +
+                  str(allies[npc_position].status_effects['Ability-Cooldowns']['Ability-' + selection.__str__()]))
+            selection = random.randint(0, allies[npc_position].current_abilities.__len__())
 
         chosen_target = 0
 
-        if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Enemy-ST':
+        if total_ability_dictionary[allies[npc_position].current_abilities[selection - 1]]['Target'] == 'Enemy-ST':
             chosen_target = random.randint(0, enemies.__len__()-1)
             f_o_f = 1
-        if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Friendly-ST':
+        if total_ability_dictionary[allies[npc_position].current_abilities[selection - 1]]['Target'] == 'Friendly-ST':
             while not chosen_target:
                 chosen_target = random.randint(0, allies.__len__()-1)
 
-        if total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]]['Target'] == 'Hybrid-ST':
+        if total_ability_dictionary[allies[npc_position].current_abilities[selection - 1]]['Target'] == 'Hybrid-ST':
             # This line causes all enemy hybrid abilities to be attacks. (Make games faster until otherwise decided)
             f_o_f = 1
             if f_o_f:
@@ -402,46 +406,48 @@ def npc_turn(npc_position, allies, enemies):
 
         if f_o_f:
             print("The enemy has chosen to use " + allies[npc_position].current_abilities[
-                choice - 1] + " and their target was the enemy " + enemies[chosen_target].character_type + "\n")
+                selection - 1] + " and their target was the enemy " + enemies[chosen_target].character_type + "\n")
         else:
             print("The enemy has chosen to use " + allies[npc_position].current_abilities[
-                choice - 1] + " and their target was the ally " + allies[chosen_target].character_type + "\n")
-        perform_ability(total_ability_dictionary[allies[npc_position].current_abilities[choice - 1]], npc_position,
-                        chosen_target, allies, enemies, f_o_f)
+                selection - 1] + " and their target was the ally " + allies[chosen_target].character_type + "\n")
+        perform_ability(total_ability_dictionary[allies[npc_position].current_abilities[selection - 1]], npc_position,
+                        chosen_target, allies, enemies, f_o_f, selection)
 
 
 def player_turn(player_position, allies, enemies):
     if allies[player_position].status_effects['Crowd-Control']['CC-Status']:
         print("Your character is crowd-controlled and can not cast right now.")
     else:
-        for ability_cd in allies[player_position].status_effects['Ability-Cooldowns']:
-            if allies[player_position].status_effects['Ability-Cooldowns'][ability_cd]:
-                print(ability_cd + " is on cooldown for " + allies[player_position].status_effects['Ability-Cooldowns'][
-                    ability_cd] + " turns.")
-
-        choice = 0
-        while not choice:
+        selection = 0
+        while not selection:
             print("Here is a list of your abilities:")
             for index, ability in enumerate(allies[player_position].current_abilities):
-                print((index + 1).__str__() + ": " + ability.capitalize())
-            choice = int(input("Choose an ability by entering its number -> "))
-            if choice not in range(1, allies[player_position].current_abilities.__len__() + 1):
-                choice = 0
+                print('Ability-' + str(index+1) + " " +
+                      str(allies[player_position].status_effects['Ability-Cooldowns']['Ability-' + str(index+1)]))
+                if allies[player_position].status_effects['Ability-Cooldowns']['Ability-' + str(index+1)]:
+                    print(str(index + 1) + ": " + ability.capitalize() + " has a cooldown of " +
+                          str(allies[player_position].status_effects['Ability-Cooldowns']
+                              ['Ability-' + str(index+1)]) + " turns")
+                else:
+                    print((index + 1).__str__() + ": " + ability.capitalize())
+            selection = int(input("Choose an ability by entering its number -> "))
+            if selection not in range(1, allies[player_position].current_abilities.__len__() + 1):
+                selection = 0
                 print("You did not make a proper selection. Please choose an ability from the list that is not on "
                       "cooldown.\n")
-            elif allies[player_position].status_effects['Ability-Cooldowns']['Ability-' + choice.__str__()]:
-                choice = 0
+            elif allies[player_position].status_effects['Ability-Cooldowns']['Ability-' + str(selection)]:
+                selection = 0
                 print("You did not make a proper selection. Please choose an ability from the list that is not on "
                       "cooldown.\n")
         # choosing a target for single target abilities
         chosen_target = 0
-        if total_ability_dictionary[allies[player_position].current_abilities[choice - 1]]['Target'] == 'Enemy-ST':
+        if total_ability_dictionary[allies[player_position].current_abilities[selection - 1]]['Target'] == 'Enemy-ST':
             print("Choose a target for your attack.")
             while not chosen_target:
                 chosen_target = int(input("Enter enemy number -> "))
                 if chosen_target not in range(1, enemies.__len__() + 1):
                     chosen_target = 0
-        if total_ability_dictionary[allies[player_position].current_abilities[choice - 1]]['Target'] == 'Friendly-ST':
+        if total_ability_dictionary[allies[player_position].current_abilities[selection - 1]]['Target'] == 'Friendly-ST':
             print("Choose a target for your heal.")
             for index, ally in enumerate(allies):
                 print("Ally " + (index + 1).__str__() + " has " + ally.health.__str__() + " health left.")
@@ -450,7 +456,7 @@ def player_turn(player_position, allies, enemies):
                 if chosen_target not in range(1, allies.__len__() + 1):
                     chosen_target = 0
         f_o_f = 0
-        if total_ability_dictionary[allies[player_position].current_abilities[choice - 1]]['Target'] == 'Hybrid-ST':
+        if total_ability_dictionary[allies[player_position].current_abilities[selection - 1]]['Target'] == 'Hybrid-ST':
             f_o_f = int(input("With this hybrid ability you must first you must choose to attack or heal."
                               " Press 0 to heal or 1 to attack -> "))
             if f_o_f:
@@ -469,8 +475,9 @@ def player_turn(player_position, allies, enemies):
                     chosen_target = int(input("Enter ally number -> "))
                     if chosen_target not in range(1, allies.__len__() + 1):
                         chosen_target = 0
-        perform_ability(total_ability_dictionary[allies[player_position].current_abilities[choice - 1]], player_position,
-                        chosen_target - 1, allies, enemies, f_o_f)
+
+        perform_ability(total_ability_dictionary[allies[player_position].current_abilities[selection - 1]],
+                        player_position, chosen_target - 1, allies, enemies, f_o_f, selection)
 
 
 def death_checker(allies, enemies):
@@ -493,14 +500,22 @@ def death_checker(allies, enemies):
 
 
 # self and target and numbers that represent their positions in allies[] and enemies[]
-def perform_ability(ability_dict, character_self, target, allies, enemies, friend_or_foe):
+def perform_ability(ability_dict, character_self, target, allies, enemies, friend_or_foe, name_position):
+    if ability_dict['Cooldown']:
+        allies[character_self].status_effects['Ability-Cooldowns']['Ability-' + name_position.__str__()] = \
+            ability_dict['Cooldown']
+        print(allies[character_self].current_abilities[name_position-1] + 'Ability-' + name_position.__str__() +
+              " was put on cooldown for " +
+              str(allies[character_self].status_effects['Ability-Cooldowns']['Ability-' + name_position.__str__()]))
+
     if ability_dict['Cast Time']:
         allies[character_self].status_effects['Cast-Bar']['Cast-Status'] = True
         allies[character_self].status_effects['Cast-Bar']['Cast-Length'] = ability_dict['Cast Time']
         allies[character_self].status_effects['Cast-Bar']['Cast-Info'] = ability_dict.copy()
         allies[character_self].status_effects['Cast-Bar']['Cast-Target'] = (character_self, target, allies,
                                                                             enemies, friend_or_foe)
-    elif ability_dict['Primary Effect'] == 'Damage':
+
+    if ability_dict['Primary Effect'] == 'Damage':
         if ability_dict['Target'] == 'Enemy-ST':
             enemies[target].health -= ability_dict['Damage']
         elif ability_dict['Target'] == 'Enemy-AOE':
@@ -547,6 +562,8 @@ def perform_ability(ability_dict, character_self, target, allies, enemies, frien
             for enemy in enemies:
                 enemy.status_effects['Crowd-Control']['CC-Status'] = True
                 enemy.status_effects['Crowd-Control']['CC-Length'] = ability_dict['Duration']
+
+
 
 
 # t_a_d format "abilityname": {'Primary Effect': 'Damage/Heal/Hybrid/CC', 'Target': 'Enemy/Friendly/Hybrid-AOE/ST',
