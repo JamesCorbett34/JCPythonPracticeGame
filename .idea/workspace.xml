@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Added a max health and a check in update_character to remove any health above the max. Updated combat area to dynamically check team sizes and adjust accordingly. Updated combat to remove enemies when they die! Fixed a bunch of formatting errors that hadn't been tested properly when implemented.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="cba87407-38ec-4588-8f67-1b23f3cdf54c" name="Changes" comment="Changed 'basic-enemy' to 'basic-npc' for visual clarity when they are used as allies and not enemies. Changed variable name from choice to selection to avoid naming conflicts with random (learned danger from book). Cleaned up character and npc creation to remove excess print statements (somehow weren't showing before?) Spent a lot of time trying to get cooldowns to work only to figure out that the status effects dictionary might be shared by all members of a class. Would need to reformat into lists or something else to fix if that's the case. Needs research." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -108,7 +105,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684168151047</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Changed 'basic-enemy' to 'basic-npc' for visual clarity when they are used as allies and not enemies. Changed variable name from choice to selection to avoid naming conflicts with random (learned danger from book). Cleaned up character and npc creation to remove excess print statements (somehow weren't showing before?) Spent a lot of time trying to get cooldowns to work only to figure out that the status effects dictionary might be shared by all members of a class. Would need to reformat into lists or something else to fix if that's the case. Needs research.">
+      <created>1684256543096</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1684256543096</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -144,6 +148,7 @@
     <MESSAGE value="Created a &quot;player_turn&quot; function to help clean up combat function as well as provide functionality for multiplayer in the future by allowing dynamic selection of the &quot;player&quot; from allies. Enemy combat! added &quot;npc_turn&quot; which allows enemies to perform attacks without user input." />
     <MESSAGE value="Added updates to both ally and enemy turns that aren't the player. Cleaned up various formatting errors and leftover print statements. Added a check before everyone's turn to check health and skip turn if they are &quot;dead&quot;" />
     <MESSAGE value="Added a max health and a check in update_character to remove any health above the max. Updated combat area to dynamically check team sizes and adjust accordingly. Updated combat to remove enemies when they die! Fixed a bunch of formatting errors that hadn't been tested properly when implemented." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added a max health and a check in update_character to remove any health above the max. Updated combat area to dynamically check team sizes and adjust accordingly. Updated combat to remove enemies when they die! Fixed a bunch of formatting errors that hadn't been tested properly when implemented." />
+    <MESSAGE value="Changed 'basic-enemy' to 'basic-npc' for visual clarity when they are used as allies and not enemies. Changed variable name from choice to selection to avoid naming conflicts with random (learned danger from book). Cleaned up character and npc creation to remove excess print statements (somehow weren't showing before?) Spent a lot of time trying to get cooldowns to work only to figure out that the status effects dictionary might be shared by all members of a class. Would need to reformat into lists or something else to fix if that's the case. Needs research." />
+    <option name="LAST_COMMIT_MESSAGE" value="Changed 'basic-enemy' to 'basic-npc' for visual clarity when they are used as allies and not enemies. Changed variable name from choice to selection to avoid naming conflicts with random (learned danger from book). Cleaned up character and npc creation to remove excess print statements (somehow weren't showing before?) Spent a lot of time trying to get cooldowns to work only to figure out that the status effects dictionary might be shared by all members of a class. Would need to reformat into lists or something else to fix if that's the case. Needs research." />
   </component>
 </project>
